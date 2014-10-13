@@ -1,0 +1,10 @@
+{
+    "name": "yuki/php-owasp-zap-v2-wrapper",
+    "authors": [
+        {
+            "name": "Yuki",
+            "email": "yukisov@gmail.com"
+        }
+    ],
+    "require": {}
+}
