@@ -5,12 +5,9 @@
  *
  * \Zap\Zapv2 クラスはそのままでは使い難いのでそのクラスでラップする。
  *
- * @TODO
- *   - 値を登録する系の処理は、既存の値をチェックして重複しないようにする。
- *
  * @package Yukisov\Zap
  */
-class ZapWrapper extends ZapWrapperBase {
+class ZapWrapper {
 
 	private $zap = null;
 	private $zap_host = "localhost";
@@ -172,16 +169,25 @@ class ZapWrapper extends ZapWrapperBase {
 	 * この内部で使用するAPIは、どんな値を投げてもそれが原因でエラーを返すことはない。
 	 *
 	 * @param $token_name
+	 * @param bool $force  true: add if the same token already exists.
 	 * @throws Exception
 	 */
-	public function addAntiCsrfToken($token_name)
+	public function addAntiCsrfToken($token_name, $force=false)
 	{
-		try {
-			$resJsonObj = $this->zap->acsrf->addOptionToken($token_name, $this->zap_api_key);
-			$this->zap->expectOk($resJsonObj);
-		} catch (\Zap\ZapError $e) {
-			throw new Exception(__METHOD__ . " Failed", Exception\Code::ADD_ACSRF_TOKEN, $e);
+		$acsrf = new Acsrf($this->zap);
+
+		if (! $force) {
+			/* 一覧を取得する */
+			$arr_tokens = $acsrf->optionTokensNames();
+
+			/* その中に見付からなかったら終了する */
+			if (in_array($token_name, $arr_tokens)) {
+				return;
+			}
 		}
+
+		/* トークンを追加する */
+		$acsrf->addOptionToken($token_name, $this->zap_api_key);
 	}
 
 	/**
@@ -193,12 +199,40 @@ class ZapWrapper extends ZapWrapperBase {
 	 */
 	public function removeAntiCsrfToken($token_name)
 	{
-		try {
-			$resJsonObj = $this->zap->acsrf->removeOptionToken($token_name, $this->zap_api_key);
-			$this->zap->expectOk($resJsonObj);
-		} catch (\Zap\ZapError $e) {
-			throw new Exception(__METHOD__ . " Failed", Exception\Code::REMOVE_ACSRF_TOKEN, $e);
-		}
+		$acsrf = new Acsrf($this->zap);
+		$acsrf->removeOptionToken($token_name, $this->zap_api_key);
 	}
 
+	/**
+	 * @param $context_name
+	 * @param $regex
+	 * @throws Exception
+	 * @internal param $zap_api_key
+	 * @internal param $context_id
+	 */
+	public function includeInContext($context_name, $regex)
+	{
+		$context = new Context($this->zap);
+
+		/* 現在の値を取得する */
+		$arr_regex = $context->includeRegexs($context_name);
+
+		if (! in_array($regex, $arr_regex)) {
+			return;
+		}
+
+		/* その中に無ければ追加する */
+		$context->includeInContext($context_name, $regex, $this->zap_api_key);
+	}
+
+	/**
+	 * @param $context_id
+	 * @param $name
+	 * @throws Exception
+	 */
+	public function newUser($context_id, $name)
+	{
+		$users = new Users($this->zap);
+		$users->newUser($context_id, $name, $this->zap_api_key);
+	}
 } 
