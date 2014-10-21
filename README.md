@@ -1,7 +1,18 @@
 php-owasp-zap-v2-wrapper
 ========================
 
-##クラスの方針
-- ZapWrapperもそれ以外の Acsrfクラス等も単独で使えるようにする。
-    - → 却下
-- ZapWrapperの場合は、これだけでフィールドを通してその以外のクラスも使えるようにする。
+Requirements
+-----
+- This library requires [zaproxy/php-owasp-zap-v2](https://packagist.org/packages/zaproxy/php-owasp-zap-v2).
+
+Development Policy
+-----
+- Users use only ZapWrapper class.
+
+Notice for Testing
+-----
+- Run ZAP before executing `phpunit`.
+
+License
+-----
+- Apache License, Version 2.0
